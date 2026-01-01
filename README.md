@@ -1,4 +1,4 @@
-# Minimal BERT Implementation from Scratch
+# minimalBERT Implementation from Scratch
 
 This repository contains a clean, educational implementation of the BERT (Bidirectional Encoder Representations from Transformers) model using PyTorch.
 
