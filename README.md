@@ -22,7 +22,7 @@ This project requires PyTorch and the Hugging Face `transformers` library (used 
 uv sync
 ```
 
-
+Note we use [uv](https://docs.astral.sh/uv/) to manage python interpreters, dependencies, and projects.
 
 ## Usage
 
