@@ -31,12 +31,6 @@ from src.bert_model import BertModel
 from src.utils import rename_state_dict_keys
 
 
-# Make src discoverable
-ROOT_DIR: Path = Path(__file__).resolve().parents[1]
-if str(ROOT_DIR) not in sys.path:
-  sys.path.insert(0, str(ROOT_DIR))
-
-
 def setup_logging() -> None:
   logging.basicConfig(
     level=logging.INFO,

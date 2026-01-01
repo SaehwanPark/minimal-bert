@@ -30,11 +30,7 @@ from dotenv import load_dotenv
 
 from src.config import BertConfig
 from src.bert_model import BertForPreTraining
-
-# Make src discoverable
-ROOT_DIR: Path = Path(__file__).resolve().parents[1]
-if str(ROOT_DIR) not in sys.path:
-  sys.path.insert(0, str(ROOT_DIR))
+from src.utils import get_torch_accelerator
 
 
 def setup_logging() -> None:
@@ -186,7 +182,8 @@ def main() -> None:
 
   # Instantiate model
   model = BertForPreTraining(config)
-  device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+  device = get_torch_accelerator()
   model.to(device)
   model.train()
 
