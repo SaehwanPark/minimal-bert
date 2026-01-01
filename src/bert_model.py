@@ -13,7 +13,6 @@ from typing import List, Optional, Tuple, Union
 
 import torch
 from torch import nn
-import torch.nn.functional as F
 
 from .config import BertConfig
 from .embeddings import BertEmbeddings
@@ -34,9 +33,9 @@ class BertEncoder(nn.Module):
 
   def __init__(self, config: BertConfig) -> None:
     super().__init__()
-    self.layers = nn.ModuleList([
-      TransformerEncoderLayer(config) for _ in range(config.num_hidden_layers)
-    ])
+    self.layers = nn.ModuleList(
+      [TransformerEncoderLayer(config) for _ in range(config.num_hidden_layers)]
+    )
 
   def forward(
     self,
@@ -65,17 +64,27 @@ class BertEncoder(nn.Module):
         - list of hidden states from each layer if requested,
         - list of attention probabilities if requested.
     """
-    all_hidden_states: Optional[List[torch.Tensor]] = [] if output_hidden_states else None
+    all_hidden_states: Optional[List[torch.Tensor]] = (
+      [] if output_hidden_states else None
+    )
     all_attentions: Optional[List[torch.Tensor]] = [] if output_attentions else None
     for layer in self.layers:
       if output_hidden_states:
         # Save the current hidden state prior to the layer
         assert all_hidden_states is not None  # for type checker
         all_hidden_states.append(hidden_states)
+
       hidden_states, attn_probs = layer(hidden_states, attention_mask)
+
       if output_attentions:
         assert all_attentions is not None
         all_attentions.append(attn_probs)
+
+    # append the final hidden state (output of the last layer)
+    if output_hidden_states:
+      assert all_hidden_states is not None
+      all_hidden_states.append(hidden_states)
+
     return hidden_states, all_hidden_states, all_attentions
 
 
@@ -124,7 +133,12 @@ class BertModel(nn.Module):
     token_type_ids: Optional[torch.Tensor] = None,
     output_hidden_states: bool = False,
     output_attentions: bool = False,
-  ) -> Tuple[torch.Tensor, torch.Tensor, Optional[List[torch.Tensor]], Optional[List[torch.Tensor]]]:
+  ) -> Tuple[
+    torch.Tensor,
+    torch.Tensor,
+    Optional[List[torch.Tensor]],
+    Optional[List[torch.Tensor]],
+  ]:
     """Perform forward pass through the BERT model.
 
     Parameters
@@ -186,7 +200,9 @@ class BertForPreTraining(nn.Module):
     super().__init__()
     self.bert = BertModel(config)
     # Tie the weights of the MLM decoder to the token embeddings
-    self.cls = MaskedLanguageModelHead(config, self.bert.embeddings.word_embeddings.weight)
+    self.cls = MaskedLanguageModelHead(
+      config, self.bert.embeddings.word_embeddings.weight
+    )
     self.nsp = NextSentencePredictionHead(config)
 
   def forward(
@@ -198,7 +214,9 @@ class BertForPreTraining(nn.Module):
     next_sentence_label: Optional[torch.Tensor] = None,
     output_hidden_states: bool = False,
     output_attentions: bool = False,
-  ) -> Union[Tuple[torch.Tensor, torch.Tensor], Tuple[torch.Tensor, torch.Tensor, torch.Tensor]]:
+  ) -> Union[
+    Tuple[torch.Tensor, torch.Tensor], Tuple[torch.Tensor, torch.Tensor, torch.Tensor]
+  ]:
     """Compute logits (and optionally losses) for MLM and NSP tasks.
 
     Parameters
@@ -250,7 +268,9 @@ class BertForPreTraining(nn.Module):
       )
       # NSP loss
       nsp_loss_fct = nn.CrossEntropyLoss()
-      nsp_loss = nsp_loss_fct(seq_relationship_scores.view(-1, 2), next_sentence_label.view(-1))
+      nsp_loss = nsp_loss_fct(
+        seq_relationship_scores.view(-1, 2), next_sentence_label.view(-1)
+      )
       total_loss = mlm_loss + nsp_loss
       return total_loss, prediction_scores, seq_relationship_scores
     return prediction_scores, seq_relationship_scores
