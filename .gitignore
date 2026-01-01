@@ -81,5 +81,5 @@ venv/
 results/
 
 # Merged codebase
-merged_codes.*
-
+merged_*.*
+merged-*.*
