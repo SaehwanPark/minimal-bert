@@ -39,7 +39,10 @@ def test_custom_model_matches_hf() -> None:
 
   # Load weights into custom model
   renamed_state_dict = rename_state_dict_keys(hf_model.state_dict())
-  custom_model.load_state_dict(renamed_state_dict, strict=False)
+  missing, unexpected = custom_model.load_state_dict(renamed_state_dict, strict=False)
+
+  # Ensure we didn't miss any critical encoder weights
+  assert len(missing) == 0, f"Failed to load specific keys: {missing}"
 
   # Tokenise sample input
   encoded = tokenizer(
@@ -65,6 +68,7 @@ def test_custom_model_matches_hf() -> None:
       attention_mask=attention_mask,
       token_type_ids=token_type_ids,
     )
+
   # Compute mean absolute difference and assert it's within tolerance
   diff = (custom_output - hf_output).abs().mean().item()
-  assert diff < 1e-3
+  assert diff < 1e-5
