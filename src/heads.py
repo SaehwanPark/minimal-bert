@@ -9,7 +9,7 @@ losses given reference labels.
 
 from __future__ import annotations
 
-from typing import Optional, Tuple
+from typing import Optional
 
 import torch
 from torch import nn
@@ -27,7 +27,9 @@ class MaskedLanguageModelHead(nn.Module):
   the token embedding weights as the decoder’s weight matrix.
   """
 
-  def __init__(self, config: BertConfig, embeddings_weight: Optional[nn.Parameter] = None) -> None:
+  def __init__(
+    self, config: BertConfig, embeddings_weight: Optional[nn.Parameter] = None
+  ) -> None:
     super().__init__()
     self.dense = nn.Linear(config.hidden_size, config.hidden_size)
     self.layer_norm = nn.LayerNorm(config.hidden_size, eps=config.layer_norm_eps)

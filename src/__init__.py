@@ -13,12 +13,12 @@ from .bert_model import BertModel, BertForPreTraining
 from .heads import MaskedLanguageModelHead, NextSentencePredictionHead
 
 __all__ = [
-    "BertConfig",
-    "BertEmbeddings",
-    "MultiHeadSelfAttention",
-    "TransformerEncoderLayer",
-    "BertModel",
-    "BertForPreTraining",
-    "MaskedLanguageModelHead",
-    "NextSentencePredictionHead",
+  "BertConfig",
+  "BertEmbeddings",
+  "MultiHeadSelfAttention",
+  "TransformerEncoderLayer",
+  "BertModel",
+  "BertForPreTraining",
+  "MaskedLanguageModelHead",
+  "NextSentencePredictionHead",
 ]

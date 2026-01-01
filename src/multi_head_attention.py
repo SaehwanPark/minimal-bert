@@ -100,7 +100,9 @@ class MultiHeadSelfAttention(nn.Module):
     # Compute scaled dot‑product attention scores
     # (batch, heads, seq_len, head_dim) x (batch, heads, head_dim, seq_len) -> (batch, heads, seq_len, seq_len)
     dk = float(self.head_dim)
-    attention_scores = torch.matmul(query_layer, key_layer.transpose(-1, -2)) / torch.sqrt(torch.tensor(dk, device=hidden_states.device))
+    attention_scores = torch.matmul(
+      query_layer, key_layer.transpose(-1, -2)
+    ) / torch.sqrt(torch.tensor(dk, device=hidden_states.device))
 
     if attention_mask is not None:
       # Add the mask (already broadcastable) to the attention scores
