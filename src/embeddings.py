@@ -14,7 +14,7 @@ from typing import Optional
 import torch
 from torch import nn
 
-from .config import BertConfig
+from config import BertConfig
 
 
 class BertEmbeddings(nn.Module):

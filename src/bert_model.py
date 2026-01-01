@@ -14,11 +14,11 @@ from typing import List, Optional, Tuple, Union
 import torch
 from torch import nn
 
-from .config import BertConfig
-from .embeddings import BertEmbeddings
-from .transformer_encoder_layer import TransformerEncoderLayer
-from .utils import create_extended_attention_mask
-from .heads import MaskedLanguageModelHead, NextSentencePredictionHead
+from config import BertConfig
+from embeddings import BertEmbeddings
+from transformer_encoder_layer import TransformerEncoderLayer
+from utils import create_extended_attention_mask
+from heads import MaskedLanguageModelHead, NextSentencePredictionHead
 
 
 class BertEncoder(nn.Module):

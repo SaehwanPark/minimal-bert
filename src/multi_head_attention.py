@@ -16,7 +16,7 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 
-from .config import BertConfig
+from config import BertConfig
 
 
 class MultiHeadSelfAttention(nn.Module):
