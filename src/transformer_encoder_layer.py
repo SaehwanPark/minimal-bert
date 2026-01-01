@@ -15,8 +15,8 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 
-from config import BertConfig
-from multi_head_attention import MultiHeadSelfAttention
+from src.config import BertConfig
+from src.multi_head_attention import MultiHeadSelfAttention
 
 
 class TransformerEncoderLayer(nn.Module):
