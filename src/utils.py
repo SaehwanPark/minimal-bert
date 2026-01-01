@@ -73,50 +73,67 @@ def rename_state_dict_keys(state_dict: Dict[str, Any]) -> Dict[str, Any]:
       new_state_dict["embeddings.layer_norm.weight"] = value
     elif key.startswith("bert.embeddings.LayerNorm.bias"):
       new_state_dict["embeddings.layer_norm.bias"] = value
+
     # Encoder layers
     elif key.startswith("bert.encoder.layer"):
-      # Extract layer index and parameter name
-      parts = key.split('.')
-      # Format: bert.encoder.layer.{layer_idx}.{module}.weight or bias
+      # Split keys: bert.encoder.layer.{layer_idx}.{submodule}...
+      parts = key.split(".")
       layer_idx = parts[3]
       submodule = parts[4]
-      param_name = '.'.join(parts[5:])
+
+      # Base prefix for this layer in our custom model
       prefix = f"encoder.layers.{layer_idx}."
+
       if submodule == "attention":
-        # attention.self.query.weight -> encoder.layers.0.attention.query.weight
-        attn_sub = '.'.join(parts[5:])
-        new_key = prefix + attn_sub
-        # Remove 'self.' from submodule names
-        new_key = new_key.replace('self.', '')
-        # Convert 'attention.output' to 'output'
-        new_key = new_key.replace('output', 'out_proj')
-        new_state_dict[new_key] = value
-      elif submodule == "attention_output":
-        # In HF models, this is named attention.output.* but already
-        # handled above.
-        continue
+        # Handle Self-Attention (query, key, value) or Output (dense, LayerNorm)
+        next_part = parts[5]
+        if next_part == "self":
+          # Ex: bert.encoder.layer.0.attention.self.query.weight
+          # -> encoder.layers.0.attention.query.weight
+          param_name = parts[6]  # query, key, or value
+          suffix = parts[7]  # weight or bias
+          new_state_dict[f"{prefix}attention.{param_name}.{suffix}"] = value
+
+        elif next_part == "output":
+          # Ex: bert.encoder.layer.0.attention.output.dense.weight
+          # -> encoder.layers.0.attention.out_proj.weight
+          if parts[6] == "dense":
+            suffix = parts[7]
+            new_state_dict[f"{prefix}attention.out_proj.{suffix}"] = value
+
+          # Ex: bert.encoder.layer.0.attention.output.LayerNorm.weight
+          # -> encoder.layers.0.norm1.weight
+          elif parts[6] == "LayerNorm":
+            suffix = parts[7]
+            new_state_dict[f"{prefix}norm1.{suffix}"] = value
+
       elif submodule == "intermediate":
-        new_state_dict[prefix + "intermediate.weight" if param_name == "dense.weight" else prefix + "intermediate.bias"] = value
+        # Ex: bert.encoder.layer.0.intermediate.dense.weight
+        # -> encoder.layers.0.intermediate.weight
+        suffix = parts[6]  # dense (ignore)
+        if suffix == "dense":
+          final_suffix = parts[7]
+          new_state_dict[f"{prefix}intermediate.{final_suffix}"] = value
+
       elif submodule == "output":
-        # output.dense.weight -> output.weight
-        # output.LayerNorm.weight -> norm2.weight
-        if param_name.startswith("dense.weight"):
-          new_state_dict[prefix + "output.weight"] = value
-        elif param_name.startswith("dense.bias"):
-          new_state_dict[prefix + "output.bias"] = value
-        elif param_name.startswith("LayerNorm.weight"):
-          new_state_dict[prefix + "norm2.weight"] = value
-        elif param_name.startswith("LayerNorm.bias"):
-          new_state_dict[prefix + "norm2.bias"] = value
-      elif submodule == "LayerNorm":
-        # The first layer norm inside attention (norm1)
-        ln_attr = parts[5]  # weight or bias
-        new_state_dict[prefix + "norm1." + ln_attr] = value
+        # Ex: bert.encoder.layer.0.output.dense.weight
+        # -> encoder.layers.0.output.weight
+        if parts[5] == "dense":
+          suffix = parts[6]
+          new_state_dict[f"{prefix}output.{suffix}"] = value
+
+        # Ex: bert.encoder.layer.0.output.LayerNorm.weight
+        # -> encoder.layers.0.norm2.weight
+        elif parts[5] == "LayerNorm":
+          suffix = parts[6]
+          new_state_dict[f"{prefix}norm2.{suffix}"] = value
+
     # Pooler
     elif key.startswith("bert.pooler.dense.weight"):
       new_state_dict["pooler.dense.weight"] = value
     elif key.startswith("bert.pooler.dense.bias"):
       new_state_dict["pooler.dense.bias"] = value
+
     # MLM & NSP heads
     elif key.startswith("cls.predictions.transform.dense.weight"):
       new_state_dict["cls.predictions.transform.dense.weight"] = value
@@ -129,7 +146,8 @@ def rename_state_dict_keys(state_dict: Dict[str, Any]) -> Dict[str, Any]:
     elif key.startswith("cls.predictions.decoder.weight"):
       new_state_dict["cls.predictions.decoder.weight"] = value
     elif key.startswith("cls.predictions.bias"):
-      new_state_dict["cls.predictions.bias"] = value
+      # FIXED: Map HF 'cls.predictions.bias' to custom 'cls.bias'
+      new_state_dict["cls.bias"] = value
     elif key.startswith("cls.seq_relationship.weight"):
       new_state_dict["cls.seq_relationship.weight"] = value
     elif key.startswith("cls.seq_relationship.bias"):
