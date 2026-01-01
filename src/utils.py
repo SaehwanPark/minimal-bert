@@ -156,3 +156,20 @@ def rename_state_dict_keys(state_dict: Dict[str, Any]) -> Dict[str, Any]:
       # For unrecognised keys, carry them over unchanged
       new_state_dict[key] = value
   return new_state_dict
+
+
+def get_torch_accelerator() -> torch.device:
+  try:
+    import torch_xla.core.xla_model as xm
+
+    return xm.xla_device()
+  except ImportError:
+    pass
+
+  if torch.cuda.is_available():
+    return torch.device("cuda")
+
+  if torch.backends.mps.is_available():
+    return torch.device("mps")
+
+  return torch.device("cpu")
