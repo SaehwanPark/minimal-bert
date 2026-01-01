@@ -22,11 +22,12 @@ from pathlib import Path
 from typing import Dict
 
 import torch
-from transformers import BertTokenizer, BertModel as HFBertModel
 from dotenv import load_dotenv
+from transformers import BertModel as HFBertModel
+from transformers import BertTokenizer
 
-from src.config import BertConfig
 from src.bert_model import BertModel
+from src.config import BertConfig
 from src.utils import rename_state_dict_keys
 
 
@@ -71,6 +72,7 @@ def main() -> None:
   # Transfer weights from HF model
   # Extract state dict, rename keys and load
   hf_state_dict: Dict[str, torch.Tensor] = hf_model.state_dict()
+  # breakpoint()
   renamed_state_dict = rename_state_dict_keys(hf_state_dict)
   missing, unexpected = custom_model.load_state_dict(renamed_state_dict, strict=False)
   if missing:
