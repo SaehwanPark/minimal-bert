@@ -79,6 +79,7 @@ venv/
 
 # Results and artifacts
 results/
+data/
 
 # Merged codebase
 merged_*.*
