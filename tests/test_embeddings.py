@@ -8,7 +8,11 @@ from src.embeddings import BertEmbeddings
 
 def test_embeddings_shape() -> None:
   config = BertConfig(
-    vocab_size=100, hidden_size=32, max_position_embeddings=20, type_vocab_size=2
+    vocab_size=100,
+    hidden_size=32,
+    max_position_embeddings=20,
+    type_vocab_size=2,
+    num_attention_heads=4,  # 32|4
   )
   embeddings = BertEmbeddings(config)
   input_ids = torch.randint(0, 100, (4, 10))
